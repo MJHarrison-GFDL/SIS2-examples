@@ -1,0 +1,144 @@
+SHELL = bash
+PLATFORM = linux
+COMPILER = gnu
+RUN_CMD = mpirun
+
+
+all: build/MOM6_SIS2.$(PLATFORM).$(COMPILER).debug/MOM6_SIS2 build/MOM6_SIS2.$(PLATFORM).$(COMPILER).repro/MOM6_SIS2
+
+
+
+build/FMS.$(PLATFORM).$(COMPILER)/libFMS.a:
+	(cd src/MOM6/.testing;make deps/fms/build/libFMS.a)
+	(mkdir build/FMS.$(PLATFORM).$(COMPILER);cd build/FMS.$(PLATFORM).$(COMPILER);ln -s ../../src/MOM6/.testing/deps/fms/build/* .)
+
+build/Icepack.$(PLATFORM).$(COMPILER).debug/libIcepack.a:
+	mkdir -p build/Icepack.$(PLATFORM).$(COMPILER).debug
+	(cd build/Icepack.$(PLATFORM).$(COMPILER).debug; rm -f path_names; ../../src/mkmf/bin/list_paths -l \
+	../../src/Icepack/columnphysics ;\
+	../../src/mkmf/bin/mkmf -t ../../src/mkmf/templates/$(PLATFORM)-$(COMPILER).mk -o \
+	'-I/usr/local/include' -p libIcepack.a -c " " path_names; \
+	source ../../build/env/$(PLATFORM)-$(COMPILER); make  NETCDF=3 DEBUG=1 -j 8 libIcepack.a)
+
+build/MOM6.$(PLATFORM).$(COMPILER).debug/libMOM6.a: build/FMS.$(PLATFORM).$(COMPILER)/libFMS.a
+	mkdir -p build/MOM6.$(PLATFORM).$(COMPILER).debug
+	(cd build/MOM6.$(PLATFORM).$(COMPILER).debug/; rm -f path_names; ../../src/mkmf/bin/list_paths -l \
+	../../src/MOM6/config_src/{dynamic_symmetric,coupled_driver,external/GFDL_ocean_BGC,external/ODA_hooks}  \
+        ../../src/MOM6/{src/*,src/*/*,src/*/*/*} ../../src/SIS2/config_src/dynamic_symmetric ../../src/SIS2/src/* \
+	../../src/icebergs/* ../../src/ice_param  ;\
+	../../src/mkmf/bin/mkmf -t ../../src/mkmf/templates/$(PLATFORM)-$(COMPILER).mk -o \
+	'-I/usr/local/include -I../../src/MOM6/.testing/deps/FMS/include -I../FMS.$(PLATFORM).$(COMPILER) -I../Icepack.$(PLATFORM).$(COMPILER).debug' \
+	-p libMOM6.a -l '-L../FMS.$(PLATFORM).$(COMPILER) -lfms -L../Icepack.$(PLATFORM).$(COMPILER).debug -lIcepack' -c \
+	"-Duse_libMPI -Duse_netCDF -DSPMD -DLAND_BND_TRACERS -Duse_AM3_physics " path_names; \
+	source ../../build/env/$(PLATFORM)-$(COMPILER); make  NETCDF=3 DEBUG=1 -j 8 libMOM6.a)
+
+build/MOM6_SIS2_FMScap.$(PLATFORM).$(COMPILER).debug/MOM6_SIS2_FMScap: build/MOM6.$(PLATFORM).$(COMPILER).debug/libMOM6.a
+	mkdir -p build/MOM6_SIS2_FMScap.$(PLATFORM).$(COMPILER).debug
+	(cd build/MOM6_SIS2_FMScap.$(PLATFORM).$(COMPILER).debug/; \
+	rm -f path_names; ../../src/mkmf/bin/list_paths ../../src/land_null/* \
+        ../../src/atmos_null/* ../../src/coupler/* ../../src/coupler/* ;\
+	../../src/mkmf/bin/mkmf -t ../../src/mkmf/templates/$(PLATFORM)-$(COMPILER).mk -o  '-I../../src/MOM6/src/framework \
+	-I../FMS.$(PLATFORM).$(COMPILER) \
+        -I../../src/MOM6/config_src/dynamic_symmetric -I../MOM6.$(PLATFORM).$(COMPILER).debug ' \
+        -l '-L../MOM6.$(PLATFORM).$(COMPILER).debug -lMOM6 -L../FMS.$(PLATFORM).$(COMPILER) -lFMS -L../Icepack.$(PLATFORM).$(COMPILER).debug -lIcepack ' \
+        -p MOM6_SIS2 -c " -Duse_netCDF -DSPMD -Duse_AM3_physics  -DSYMMETRIC_MEMORY_ -D_USE_LEGACY_LAND_" path_names; \
+	source ../../build/env/$(PLATFORM)-$(COMPILER); make  NETCDF=3 DEBUG=1 -j 8 MOM6_SIS2)
+
+build/Icepack.$(PLATFORM).$(COMPILER).repro/libIcepack.a:
+	mkdir -p build/Icepack.$(PLATFORM).$(COMPILER).repro
+	(cd build/Icepack.$(PLATFORM).$(COMPILER).repro; rm -f path_names; ../../src/mkmf/bin/list_paths -l \
+	../../src/Icepack/columnphysics ;\
+	../../src/mkmf/bin/mkmf -t ../../src/mkmf/templates/$(PLATFORM)-$(COMPILER).mk -o \
+	'-I/usr/local/include' -p libIcepack.a -c " " path_names; \
+	source ../../build/env/$(PLATFORM)-$(COMPILER); make  NETCDF=3 REPRO=1 -j 8 libIcepack.a)
+
+build/MOM6.$(PLATFORM).$(COMPILER).repro/libMOM6.a: build/FMS.$(PLATFORM).$(COMPILER)/libFMS.a build/Icepack.$(PLATFORM).$(COMPILER).repro/libIcepack.a
+	mkdir -p build/MOM6.$(PLATFORM).$(COMPILER).repro
+	(cd build/MOM6.$(PLATFORM).$(COMPILER).repro/; rm -f path_names; ../../src/mkmf/bin/list_paths -l \
+	../../src/MOM6/config_src/{dynamic_symmetric,coupled_driver,external/GFDL_ocean_BGC,external/ODA_hooks}  \
+        ../../src/MOM6/{src/*,src/*/*,src/*/*/*} ../../src/SIS2/config_src/dynamic_symmetric ../../src/SIS2/src/* \
+	../../src/icebergs/* ../../src/ice_param  ;\
+	../../src/mkmf/bin/mkmf -t ../../src/mkmf/templates/$(PLATFORM)-$(COMPILER).mk -o \
+	'-I/usr/local/include -I../../src/MOM6/.testing/deps/FMS/include -I../FMS.$(PLATFORM).$(COMPILER) -I../Icepack.$(PLATFORM).$(COMPILER).repro' \
+	-p libMOM6.a -l '-L../FMS.$(PLATFORM).$(COMPILER) -lfms -L../Icepack.$(PLATFORM).$(COMPILER).repro -lIcepack' -c \
+	"-Duse_libMPI -Duse_netCDF -DSPMD -DLAND_BND_TRACERS -Duse_AM3_physics " path_names; \
+	source ../../build/env/$(PLATFORM)-$(COMPILER); make  NETCDF=3 REPRO=1 -j 8 libMOM6.a)
+
+build/MOM6_SIS2_FMScap.$(PLATFORM).$(COMPILER).repro/MOM6_SIS2_FMScap: build/MOM6.$(PLATFORM).$(COMPILER).repro/libMOM6.a
+	mkdir -p build/MOM6_SIS2_FMScap.$(PLATFORM).$(COMPILER).repro
+	(cd build/MOM6_SIS2_FMScap.$(PLATFORM).$(COMPILER).repro/; \
+	rm -f path_names; ../../src/mkmf/bin/list_paths ../../src/land_null/* \
+        ../../src/atmos_null/* ../../src/coupler/* ../../src/coupler/* ;\
+	../../src/mkmf/bin/mkmf -t ../../src/mkmf/templates/$(PLATFORM)-$(COMPILER).mk -o  '-I../../src/MOM6/src/framework \
+	-I../FMS.$(PLATFORM).$(COMPILER) \
+        -I../../src/MOM6/config_src/dynamic_symmetric -I../MOM6.$(PLATFORM).$(COMPILER).repro ' \
+        -l '-L../MOM6.$(PLATFORM).$(COMPILER).repro -lMOM6 -L../FMS.$(PLATFORM).$(COMPILER) -lFMS -L../Icepack.$(PLATFORM).$(COMPILER).repro -lIcepack ' \
+        -p MOM6_SIS2 -c " -Duse_netCDF -DSPMD -Duse_AM3_physics  -DSYMMETRIC_MEMORY_ -D_USE_LEGACY_LAND_" path_names; \
+	source ../../build/env/$(PLATFORM)-$(COMPILER); make  NETCDF=3 REPRO=1 -j 8 MOM6_SIS2)
+
+
+build/MOM6_solo.$(PLATFORM).$(COMPILER).repro/MOM6_solo: build/MOM6.$(PLATFORM).$(COMPILER).repro/libMOM6.a
+	mkdir -p build/MOM6_solo.$(PLATFORM).$(COMPILER).repro
+	(cd build/MOM6_solo.$(PLATFORM).$(COMPILER).repro/; \
+	rm -f path_names; ../../src/mkmf/bin/list_paths ../../src/MOM6/config_src/solo_driver/* ;\
+	../../src/mkmf/bin/mkmf -t ../../src/mkmf/templates/$(PLATFORM)-$(COMPILER).mk -o  '-I../../src/FMS/include -I../../src/MOM6/src/framework \
+        -I../../src/MOM6/config_src/dynamic_symmetric -I../MOM6.$(PLATFORM).$(COMPILER).repro  -I../shared.$(PLATFORM).$(COMPILER).repro' \
+        -l '-L../MOM6.$(PLATFORM).$(COMPILER).repro -lMOM6 -L../shared.$(PLATFORM).$(COMPILER).repro -lfms ' \
+        -p MOM6_solo -c "-Duse_libMPI -Duse_netCDF -DSPMD   -DSYMMETRIC_MEMORY_" path_names; \
+	source ../../build/env/$(PLATFORM)-$(COMPILER); make  NETCDF=3 REPRO=1 -j 8 MOM6_solo)
+
+build/MOM6_solo.$(PLATFORM).$(COMPILER).debug/MOM6_solo: build/MOM6.$(PLATFORM).$(COMPILER).debug/libMOM6.a
+	mkdir -p build/MOM6_solo.$(PLATFORM).$(COMPILER).debug
+	(cd build/MOM6_solo.$(PLATFORM).$(COMPILER).debug/; \
+	rm -f path_names; ../../src/mkmf/bin/list_paths ../../src/MOM6/config_src/solo_driver/* ;\
+	../../src/mkmf/bin/mkmf -t ../../src/mkmf/templates/$(PLATFORM)-$(COMPILER).mk -o  '-I../../src/FMS/include -I../../src/MOM6/src/framework \
+        -I../../src/MOM6/config_src/dynamic_symmetric -I../MOM6.$(PLATFORM).$(COMPILER).debug  -I../shared.$(PLATFORM).$(COMPILER).debug' \
+        -l '-L../MOM6.$(PLATFORM).$(COMPILER).debug -lMOM6 -L../shared.$(PLATFORM).$(COMPILER).debug -lfms ' \
+        -p MOM6_solo -c "-Duse_libMPI -Duse_netCDF -DSPMD   -DSYMMETRIC_MEMORY_" path_names; \
+	source ../../build/env/$(PLATFORM)-$(COMPILER); make  NETCDF=3 DEBUG=1 -j 8 MOM6_solo)
+
+build/MOM6_IS_solo.$(PLATFORM).$(COMPILER).debug/MOM6_IS_solo: build/MOM6.$(PLATFORM).$(COMPILER).debug/libMOM6.a
+	mkdir -p build/MOM6_IS_solo.$(PLATFORM).$(COMPILER).debug
+	(cd build/MOM6_IS_solo.$(PLATFORM).$(COMPILER).debug/; \
+	rm -f path_names; ../../src/mkmf/bin/list_paths ../../src/MOM6/config_src/ice_solo_driver/* ;\
+	../../src/mkmf/bin/mkmf -t ../../src/mkmf/templates/$(PLATFORM)-$(COMPILER).mk -o  '-I../../src/FMS/include -I../../src/MOM6/src/framework \
+        -I../../src/MOM6/config_src/dynamic_symmetric -I../MOM6.$(PLATFORM).$(COMPILER).debug  -I../shared.$(PLATFORM).$(COMPILER).debug' \
+        -l '-L../MOM6.$(PLATFORM).$(COMPILER).debug -lMOM6 -L../shared.$(PLATFORM).$(COMPILER).debug -lfms ' \
+        -p MOM6_IS_solo -c "-Duse_libMPI -Duse_netCDF -DSPMD   -DSYMMETRIC_MEMORY_" path_names; \
+	source ../../build/env/$(PLATFORM)-$(COMPILER); make  NETCDF=3 DEBUG=1 -j 8 MOM6_IS_solo)
+
+build/test_horiz_interp.$(PLATFORM).$(COMPILER).repro/test_horiz_interp: build/shared.$(PLATFORM).$(COMPILER).repro/libfms.a
+	mkdir -p build/test_horiz_interp.$(PLATFORM).$(COMPILER).repro
+	(cd build/test_horiz_interp.$(PLATFORM).$(COMPILER).repro/; \
+	rm -f path_names; ../../src/mkmf/bin/list_paths ../../src/FMS/horiz_interp/test_horiz_interp.F90  ;\
+	../../src/mkmf/bin/mkmf -t ../../src/mkmf/templates/$(PLATFORM)-$(COMPILER).mk -o  '-I../../src/FMS/include  \
+        -I../shared.$(PLATFORM).$(COMPILER).repro' \
+        -l '-L../shared.$(PLATFORM).$(COMPILER).repro -lfms ' \
+        -p test_horiz_interp -c "-Duse_libMPI -Duse_netCDF -DSPMD  -Duse_AM3_physics -DTEST_HORIZ_INTERP  " path_names; \
+	source ../../build/env/$(PLATFORM)-$(COMPILER); make  NETCDF=3 REPRO=1 -j 8 test_horiz_interp)
+
+build/test_data_override.$(PLATFORM).$(COMPILER).repro/test_data_override: build/shared.$(PLATFORM).$(COMPILER).repro/libfms.a
+	mkdir -p build/test_data_override.$(PLATFORM).$(COMPILER).repro
+	(cd build/test_data_override.$(PLATFORM).$(COMPILER).repro/; \
+	rm -f path_names; ../../src/mkmf/bin/list_paths ../../src/FMS/data_override/data_override.F90  ;\
+	../../src/mkmf/bin/mkmf -t ../../src/mkmf/templates/$(PLATFORM)-$(COMPILER).mk -o  '-I../../src/FMS/include  \
+        -I../shared.$(PLATFORM).$(COMPILER).repro' \
+        -l '-L../shared.$(PLATFORM).$(COMPILER).repro -lfms ' \
+        -p test_data_override -c "-Duse_libMPI -Duse_netCDF -DSPMD  -Duse_AM3_physics -Dtest_data_override  " path_names; \
+	source ../../build/env/$(PLATFORM)-$(COMPILER); make  NETCDF=3 REPRO=1 -j 8 test_data_override)
+
+build/test_data_override.$(PLATFORM).$(COMPILER).debug/test_data_override: build/shared.$(PLATFORM).$(COMPILER).debug/libfms.a
+	mkdir -p build/test_data_override.$(PLATFORM).$(COMPILER).debug
+	(cd build/test_data_override.$(PLATFORM).$(COMPILER).debug/; \
+	rm -f path_names; ../../src/mkmf/bin/list_paths ../../src/FMS/data_override/data_override.F90  ;\
+	../../src/mkmf/bin/mkmf -t ../../src/mkmf/templates/$(PLATFORM)-$(COMPILER).mk -o  '-I../../src/FMS/include  \
+        -I../shared.$(PLATFORM).$(COMPILER).debug' \
+        -l '-L../shared.$(PLATFORM).$(COMPILER).debug -lfms ' \
+        -p test_data_override -c "-Duse_libMPI -Duse_netCDF -DSPMD  -Duse_AM3_physics -Dtest_data_override  " path_names; \
+	source ../../build/env/$(PLATFORM)-$(COMPILER); make  NETCDF=3 DEBUG=1 -j 8 test_data_override)
+
+
+clean:
+	(rm -rf build/{MOM6_SIS2.$(PLATFORM).$(COMPILER).debug,MOM6_solo.$(PLATFORM).$(COMPILER).debug,MOM6.$(PLATFORM).$(COMPILER).debug,MOM6_solo.$(PLATFORM).$(COMPILER).debug,shared.$(PLATFORM).$(COMPILER).debug,test_horiz_interp.$(PLATFORM).$(COMPILER).debug})
+	(rm -rf build/{MOM6_SIS2.$(PLATFORM).$(COMPILER).repro,MOM6_solo.$(PLATFORM).$(COMPILER).repro,MOM6.$(PLATFORM).$(COMPILER).repro,MOM6_solo.$(PLATFORM).$(COMPILER).repro,shared.$(PLATFORM).$(COMPILER).repro,test_horiz_interp.$(PLATFORM).$(COMPILER).repro})
+	(rm -rf .results)

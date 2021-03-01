@@ -1,0 +1,24 @@
+"ATM" , "p_surf"        , "" , ""                     , .true. ,  0.0
+"ATM" ,  "p_bot"        , "" , ""                     , .true. ,  0.0
+"ATM" ,  "t_bot"        , "" , ""                     , .true. ,  273.14
+"ATM" ,  "u_bot"        , "" , ""                     , .true. ,  0.0
+"ATM" ,  "v_bot"        , "" , ""                     , .true. ,  1.0
+"ATM" ,  "z_bot"        , "" , ""                     , .true. ,  10.0
+"ATM" ,  "sphum_bot"    , "" , ""                     , .true. ,  10.0
+"ICE" , "lw_flux_dn"    , "" , ""                     , .true.,  0.0
+"ICE" , "sw_flux_vis_dir_dn"    , "" , ""             , .true.,  0.0
+"ICE" , "sw_flux_vis_dif_dn"    , "" , ""             , .true.,  0.0
+"ICE" , "sw_flux_nir_dir_dn"    , "" , ""             , .true.,  0.0
+"ICE" , "sw_flux_nir_dif_dn"    , "" , ""             , .true.,  0.0
+"OCN" , "lw_flux_dn"    , "" , ""                     , .true.,  0.0
+"OCN" , "sw_flux_vis_dir_dn"    , "" , ""             , .true.,  0.0
+"OCN" , "sw_flux_vis_dif_dn"    , "" , ""             , .true.,  0.0
+"OCN" , "sw_flux_nir_dir_dn"    , "" , ""             , .true.,  0.0
+"OCN" , "sw_flux_nir_dif_dn"    , "" , ""             , .true.,  0.0
+"ICE" , "lprec"         , ""        , ""  , .true. ,  0.0
+"ICE" , "fprec"         , ""        , ""  , .true. ,  0.0
+"ICE" , "runoff"         , ""        , ""  , .true. ,  0.0
+"ICE" , "calving"         , ""        , ""  , .true. ,  0.0
+"ICE" , "dhdt"         , ""        , ""  , .true. ,  80.
+"ICE" , "dedt"         , ""        , ""  , .true. ,  2.e-6
+"ICE" , "drdt"         , ""        , ""  , .true. ,  10.
