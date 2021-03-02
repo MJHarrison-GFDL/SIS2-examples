@@ -18,6 +18,9 @@ CONSTANT_COSZEN_IC = 0.0        !   [nondim] default = -1.0
 DO_ICEBERGS = False              !   [Boolean] default = False
                                 ! If true, call the iceberg module.
 
+DO_RIDGING = False              !   [Boolean] default = False
+                                ! If true, call the ridging routines.
+
 ! === module MOM_domains ===
 TRIPOLAR_N = False              !   [Boolean] default = False
                                 ! Use tripolar connectivity at the northern edge of the domain.  With

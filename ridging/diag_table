@@ -1,2 +1,14 @@
 rigding test
 1 1 1 0 0 0
+"ice_diags",            60, "minutes",   1, "days", "time"
+"ocn_diags",            60, "minutes",   1, "days", "time"
+"ice_model", "MIB",       "MIB",         "ice_diags", "all", "none", "none", 2
+"ice_model", "CN",       "CN",         "ice_diags", "all", "none", "none", 2
+"ice_model", "FA_X",       "taux",         "ice_diags", "all", "none", "none", 2
+"ice_model", "FA_Y",       "tauy",         "ice_diags", "all", "none", "none", 2
+"ocean_model", "temp",       "temp",         "ocn_diags", "all", "none", "none", 2
+"ocean_model", "salt",       "salt",         "ocn_diags", "all", "none", "none", 2
+"ocean_model", "u",       "u",         "ocn_diags", "all", "none", "none", 2
+"ocean_model", "v",       "v",         "ocn_diags", "all", "none", "none", 2
+"ocean_model", "hfds",       "hfds",         "ocn_diags", "all", "none", "none", 2
+"ocean_model", "tauy",       "tauy",         "ocn_diags", "all", "none", "none", 2
