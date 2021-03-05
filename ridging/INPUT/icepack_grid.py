@@ -17,6 +17,8 @@ ncells=int((nxp-1)/2)
 
 x=np.linspace(0.,1,nxp)
 X,Y=np.meshgrid(x,x)
+X=X*xlen
+Y=Y*xlen+ys
 sgrid=supergrid(xdat=X,ydat=Y,axis_units='degrees')
 sgrid.grid_metrics()
 grid=quadmesh(supergrid=sgrid)
@@ -26,7 +28,7 @@ xh=X[1::2,1::2]
 yh=xh.T
 dpth=np.zeros((ncells,ncells))+D0
 #coastline
-xc=xh[0,:]
+xc=xh[0,:];yc=yh[:,0]
 nc2=np.int(ncells / 2)
 for k in np.arange(nc2):
     dpth[k,k+nc2:]=0.
@@ -49,6 +51,85 @@ dc=nc.stringtochar(d)
 v[:]=dc
 top[:]=dpth
 f.close()
+
+
+f=nc.Dataset('uvwind.nc','w')
+f.createDimension('lon',ncells)
+f.createDimension('lat',ncells)
+f.createDimension('time',None)
+
+lonv=f.createVariable('lon','f8',('lon',))
+latv=f.createVariable('lat','f8',('lat',))
+tv=f.createVariable('time','f8',('time',))
+tv.units='days since 0001-01-01 00:00:00'
+tv.calendar='julian'
+#tv.modulo=' '
+uv=f.createVariable('uwind','f8',('time','lat','lon'))
+vv=f.createVariable('vwind','f8',('time','lat','lon'))
+lonv[:]=xc
+latv[:]=yc
+V0=20.0;V0_len=1.0
+U0=10.0;U_ref=1.0
+v_wind = np.zeros(xh.shape)
+time=0.
+for i in np.arange(120):
+    uv[i,:]=np.sin(i*np.pi/4.)*U0 + v_wind + U_ref
+    vv[i,:]=np.sin(i*np.pi/4.)*V0 + v_wind
+    tv[i]=time
+    time=time+V0_len/8.
+f.close()
+
+
+f=nc.Dataset('tair.nc','w')
+f.createDimension('lon',ncells)
+f.createDimension('lat',ncells)
+f.createDimension('time',None)
+
+lonv=f.createVariable('lon','f8',('lon',))
+latv=f.createVariable('lat','f8',('lat',))
+tv=f.createVariable('time','f8',('time',))
+tv.units='days since 0001-01-01 00:00:00'
+tv.calendar='julian'
+tv.modulo=' '
+vv=f.createVariable('tair','f8',('time','lat','lon'))
+lonv[:]=xc
+latv[:]=yc
+T_REF=273.15;T_RANGE=20.
+tair = np.zeros(xh.shape)+T_REF
+time=0.
+for i in np.arange(120):
+    vv[i,:]=np.sin(i*np.pi/4.)*T_RANGE + tair
+    tv[i]=time
+    time=time+V0_len/8.
+f.close()
+
+f=nc.Dataset('ice_ic.nc','w')
+f.createDimension('lon',ncells)
+f.createDimension('lat',ncells)
+f.createDimension('time',None)
+
+lonv=f.createVariable('lon','f8',('lon',))
+latv=f.createVariable('lat','f8',('lat',))
+tv=f.createVariable('time','f8',('time',))
+tv.units='days since 0001-01-01 00:00:00'
+tv.calendar='julian'
+tv.modulo=' '
+vv=f.createVariable('sit','f8',('time','lat','lon'))
+cv=f.createVariable('sic','f8',('time','lat','lon'))
+lonv[:]=xc
+latv[:]=yc
+sit = np.cos(4*(yh-ys)/xlen*np.pi)*2.0 + 3.0
+sit[dpth==0]=0
+sic = 0.5*np.cos(4*(yh-ys)/xlen*np.pi)+0.5
+sic[dpth==0]=0
+time=0.
+for i in np.arange(1):
+    vv[i,:]=sit
+    cv[i,:]=sic
+    tv[i]=time
+    time=time+V0_len/8.
+f.close()
+
 
 ######################
 #Write Mosaics
