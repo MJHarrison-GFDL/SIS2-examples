@@ -1,9 +1,11 @@
 "ATM" , "p_surf"        , "" , ""                     , .true. ,  1.e5
 "ATM" ,  "p_bot"        , "" , ""                     , .true. ,  1.e5
 "ATM" ,  "slp"        , "" , ""                     , .true. ,  1.e5
-"ATM" ,  "t_bot"        , "" , ""                     , .true. ,  253.14
-"ATM" ,  "u_bot"        , "" , ""                     , .true. ,  0.0
-"ATM" ,  "v_bot"        , "vwind" , "INPUT/vwind.nc"                     , .true. ,  100.0
+"ATM" ,  "t_bot"        , "tair" , "INPUT/tair.nc"                     , .true. ,  1.0
+#"ATM" ,  "u_bot"        , "" , ""                     , .true. ,  0.0
+"ATM" ,  "u_bot"        , "uwind" , "INPUT/uvwind.nc"  , .true. ,  1.0
+#"ATM" ,  "v_bot"        , "" , ""                     , .true. ,  1.0
+"ATM" ,  "v_bot"        , "vwind" , "INPUT/uvwind.nc"  , .true. ,  1.0
 "ATM" ,  "z_bot"        , "" , ""                     , .true. ,  10.0
 "ATM" ,  "sphum_bot"    , "" , ""                     , .true. ,  1.e-3
 "ATM" ,  "gust"         , "" , ""                     , .true. ,  1.e-3
@@ -32,6 +34,6 @@
 "ICE" , "dedt"         , ""        , ""  , .true. ,  2.e-6
 "ICE" , "drdt"         , ""        , ""  , .true. ,  10.
 "ICE" , "drdt"         , ""        , ""  , .true. ,  10.
-"ICE", "sic_obs"        , ""         ,""       , .true. ,  0.1
-"ICE", "sit_obs"        , ""         ,""       , .true. ,  1.0
+"ICE", "sic_obs"        , "sic"         ,"INPUT/ice_ic.nc"       , .true. ,  1.0
+"ICE", "sit_obs"        , "sit"         ,"INPUT/ice_ic.nc"       , .true. ,  1.0
 "ICE", "sst_obs"        , ""         ,""       , .true. ,  -2.0
