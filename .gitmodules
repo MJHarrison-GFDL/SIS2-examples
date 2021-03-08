@@ -7,9 +7,6 @@
 [submodule "src/FMS"]
 	path = src/FMS
 	url = https://github.com/NOAA-GFDL/FMS.git
-[submodule "src/coupler"]
-	path = src/coupler
-	url = https://github.com/NOAA-GFDL/coupler.git
 [submodule "src/mkmf"]
 	path = src/mkmf
 	url = https://github.com/NOAA-GFDL/mkmf.git
