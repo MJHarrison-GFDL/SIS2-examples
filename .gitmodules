@@ -19,8 +19,8 @@
 [submodule "src/ice_param"]
 	path = src/ice_param
 	url = https://github.com/NOAA-GFDL/ice_param.git
-[submodule "coupler"]
-	path = coupler
+[submodule "src/coupler"]
+	path = src/coupler
 	url = https://github.com/NOAA-GFDL/coupler.git
 [submodule "src/land_null"]
 	path = src/land_null
